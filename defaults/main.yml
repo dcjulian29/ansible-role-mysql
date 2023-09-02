@@ -1,0 +1,16 @@
+---
+mysql_database_name: "test_{{ ansible_hostname }}"
+mysql_database_user: "mysql_{{ ansible_hostname }}"
+mysql_database_password: abcde$12345
+mysql_data_dir: "/opt/{{ mysql_name }}"
+mysql_docker_image: mariadb
+mysql_docker_tag: 11
+mysql_gid: 982
+mysql_group: mysql
+mysql_labels: { }
+mysql_name: "mysql_{{ ansible_hostname }}"
+mysql_port: 3306
+mysql_port_exposed: true
+mysql_root_password: abcedf12345!
+mysql_volumes:
+  - "{{ mysql_data_dir }}:/var/lib/mysql"

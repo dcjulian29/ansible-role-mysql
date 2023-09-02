@@ -1,0 +1,14 @@
+---
+- name: Restart MySQL
+  ansible.builtin.command: "docker restart {{ item }}"
+  with_items:
+    - "{{ mysql_name }}"
+
+- name: Remove MySQL
+  ansible.builtin.command: "docker stop {{ item }} && docker rm {{ item }}"
+  register: results
+  with_items:
+    - "{{ mysql_name }}"
+  failed_when: >-
+    results is failed and
+    "No such container" not in results.stderr | default(false)

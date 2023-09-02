@@ -1,0 +1,46 @@
+---
+- name: Ensure MySql container group exists with correct gid
+  ansible.builtin.group:
+    gid: "{{ mysql_gid }}"
+    name: "{{ mysql_group }}"
+    state: present
+
+- name: Ensure MySql directory exist
+  ansible.builtin.file:
+    path: "{{ mysql_data_dir }}"
+    state: directory
+    owner: 999
+    group: "{{ mysql_gid }}"
+    mode: "0700"
+
+- name: Pull MySql container image
+  community.docker.docker_image:
+    name: "{{ mysql_docker_image }}"
+    source: pull
+    tag: "{{ mysql_docker_tag }}"
+  notify: Remove MySQL
+
+- name: Ensure MySql container is created
+  community.docker.docker_container:
+    container_default_behavior: no_defaults
+    detach: true
+    env:
+      TZ: "{{ ansible_date_time.tz }}"
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+      MYSQL_DATABASE: "{{ mysql_database_name }}"
+      MYSQL_USER: "{{ mysql_database_user }}"
+      MYSQL_PASSWORD: "{{ mysql_database_password }}"
+    image: "{{ mysql_docker_image }}:{{ mysql_docker_tag }}"
+    interactive: false
+    labels: "{{ mysql_labels | default(omit) }}"
+    name: "{{ mysql_name }}"
+    published_ports: >-
+        {{
+          [ mysql_port ~ ':3306' ]
+          if mysql_port_exposed else omit
+        }}
+    restart_policy: always
+    state: present
+    volumes: "{{ mysql_volumes }}"
+    user: "0:{{ mysql_gid }}"
+  notify: Restart MySQL
